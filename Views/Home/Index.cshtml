@@ -1,8 +1,47 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model IEnumerable<CatForum.Models.Discussion>
+
+@{
+    ViewData["Title"] = "Discussion Posts";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1>Discussion Posts</h1>
+<hr>
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var discussion in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    @if (!string.IsNullOrEmpty(discussion.ImageFilename))
+                    {
+                        <!-- Display Thumbnail -->
+                        <img src="@discussion.ImageFilename" class="card-img-top" alt="@discussion.Title" style="height: 200px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <!-- Placeholder Thumbnail -->
+                        <img src="/images/placeholder.png" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;" />
+                    }
+
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a asp-controller="Discussions" asp-action="Details" asp-route-id="@discussion.DiscussionId">
+                                @discussion.Title
+                            </a>
+                        </h5>
+                        <p class="card-text">
+                            @discussion.Content.Substring(0, Math.Min(discussion.Content.Length, 100))...
+                        </p>
+                        <small class="text-muted">Posted on @discussion.CreateDate.ToString("g")</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No discussions available yet.</p>
+}

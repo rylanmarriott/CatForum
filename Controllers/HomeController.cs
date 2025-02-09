@@ -1,26 +1,24 @@
 using System.Diagnostics;
+using CatForum.Data;
 using CatForum.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CatForum.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly CatForumContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(CatForumContext context)
         {
-            _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
+            var discussions = await _context.Discussion.ToListAsync();
+            return View(discussions);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

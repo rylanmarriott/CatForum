@@ -1,0 +1,79 @@
+﻿<h2>Add a Comment</h2>
+
+<form id="commentForm">
+    <input type="hidden" name="DiscussionId" value="@ViewBag.DiscussionId" />
+
+    <div class="mb-3">
+        <label for="Content" class="form-label">Comment</label>
+        <textarea id="Content" name="Content" class="form-control" rows="4" required></textarea>
+        <span id="commentError" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+<div id="commentsSection">
+    <h3>Comments</h3>
+    <ul id="commentsList" class="list-group">
+        @if (Model.Comments != null && Model.Comments.Any())
+        {
+            @foreach (var comment in Model.Comments)
+            {
+                <li class="list-group-item">
+                    <p>@comment.Content</p>
+                    <small class="text-muted">Posted on @comment.CreatedDate.ToString("g")</small>
+                </li>
+            }
+        }
+        else
+        {
+            <p>No comments yet.</p>
+        }
+    </ul>
+</div>
+
+@section Scripts {
+    
+    <script>
+        $(document).ready(function () {
+            $("#commentForm").on("submit", function (event) {
+                event.preventDefault(); // Prevent full-page reload
+
+                var formData = {
+                    Content: $("#Content").val(),
+                    DiscussionId: $("input[name='DiscussionId']").val()
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "/Comments/Create",
+                    data: formData,
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            // Append the new comment dynamically
+                            $("#commentsList").append(
+                                `<li class="list-group-item">
+                                    <p>${formData.Content}</p>
+                                    <small class="text-muted">Just now</small>
+                                </li>`
+                            );
+
+                            // Clear the textarea after posting
+                            $("#Content").val("");
+                            $("#commentError").text(""); // Clear error message if any
+                        } else {
+                            $("#commentError").text(response.errors.join(", ")); // Show validation errors
+                        }
+                    },
+                    error: function () {
+                        $("#commentError").text("Error posting comment.");
+                    }
+                });
+            });
+        });
+    </script>
+
+}
