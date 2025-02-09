@@ -1,96 +1,82 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
 
 body {
-  margin-bottom: 60px;
+    background-color: #f8f9fa; 
+    font-family: 'Arial', sans-serif;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+h3, p, dd, dt, h4 {
+    margin: auto auto auto 10px;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-    text-align: start;
+#class {
+    background-color: red;
 }
 
-.card-img-top
-{
-    border-radius: 5px;
-    height: 200px;
-    object-fit: cover;
-}
 
-.card-title {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.card-text {
-    font-size: 0.9rem;
-    color: #555;
+.container {
+    max-width: 900px;
+    margin: auto;
 }
 
 .card {
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-}
-
-.list-group-item h4 {
-    margin-bottom: 5px;
-}
-
-.list-group-item p {
-    margin-bottom: 10px;
-    color: #555;
-}
-
-.list-group-item small {
-    font-size: 0.85rem;
-    color: #777;
-}
-
-textarea.form-control {
     border-radius: 10px;
-    border: 1px solid #ccc;
-    padding: 10px;
-    font-size: 1rem;
+    transition: 0.3s;
 }
 
-    textarea.form-control:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    .card:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+.card-img-top {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    height: 150px;
+    object-fit: cover;
+}
+
+.card-title a {
+    text-decoration: none;
+    color: #007bff;
+    font-weight: bold;
+}
+
+    .card-title a:hover {
+        text-decoration: underline;
+        color: #0056b3;
+    }
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+
+.new-discussion-btn {
+    display: block;
+    width: fit-content;
+    margin-bottom: 20px;
+    background-color: #28a745; 
+    border: none;
+}
+
+    .new-discussion-btn:hover {
+        background-color: #218838;
     }
 
 .list-group-item {
-    border-radius: 10px;
-    margin-bottom: 10px;
+    background: #fff;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    padding: 10px;
 }
 
-    .list-group-item p {
-        margin: 0;
-    }
-
-    .list-group-item small {
-        font-size: 0.85rem;
-        color: #6c757d;
-    }
+.comment-box {
+    background: #f1f1f1;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 15px;
+}

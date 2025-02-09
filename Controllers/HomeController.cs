@@ -17,9 +17,14 @@ namespace CatForum.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var discussions = await _context.Discussion.ToListAsync();
+            var discussions = await _context.Discussion
+                .Include(d => d.Comments)
+                .OrderByDescending(d => d.CreateDate)
+                .ToListAsync();
+
             return View(discussions);
         }
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

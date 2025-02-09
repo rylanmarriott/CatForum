@@ -12,8 +12,8 @@
     <div class="row">
         @foreach (var discussion in Model)
         {
-            <div class="col-md-4 mb-4">
-                <div class="card">
+            <div class="col-md-4">
+                <div class="card mb-3">
                     @if (!string.IsNullOrEmpty(discussion.ImageFilename))
                     {
                         <!-- Display Thumbnail -->
@@ -32,9 +32,12 @@
                             </a>
                         </h5>
                         <p class="card-text">
-                            @discussion.Content.Substring(0, Math.Min(discussion.Content.Length, 100))...
+                            <strong>@discussion.Comments.Count</strong> comments
                         </p>
-                        <small class="text-muted">Posted on @discussion.CreateDate.ToString("g")</small>
+                        <p class="card-text">
+                            <small class="text-muted">Created: @discussion.CreateDate.ToString("g")</small>
+                        </p>
+                        
                     </div>
                 </div>
             </div>
