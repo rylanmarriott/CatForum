@@ -3,6 +3,7 @@ using System;
 using CatForum.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CatForum.Migrations
 {
     [DbContext(typeof(CatForumContext))]
-    partial class CatForumContextModelSnapshot : ModelSnapshot
+    [Migration("20250309213526_AddUserToDiscussionAndComment")]
+    partial class AddUserToDiscussionAndComment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.1");
@@ -37,9 +40,11 @@ namespace CatForum.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ImageFilename")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Location")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
@@ -128,9 +133,6 @@ namespace CatForum.Migrations
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("ApplicationUserId1")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -143,13 +145,12 @@ namespace CatForum.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
+                        .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
                     b.HasKey("DiscussionId");
 
                     b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("ApplicationUserId1");
 
                     b.ToTable("Discussion");
                 });
@@ -290,8 +291,7 @@ namespace CatForum.Migrations
                 {
                     b.HasOne("CatForum.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("ApplicationUserId");
 
                     b.HasOne("CatForum.Models.Discussion", "Discussion")
                         .WithMany("Comments")
@@ -308,12 +308,7 @@ namespace CatForum.Migrations
                 {
                     b.HasOne("CatForum.Models.ApplicationUser", "ApplicationUser")
                         .WithMany()
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("CatForum.Models.ApplicationUser", null)
-                        .WithMany("Discussions")
-                        .HasForeignKey("ApplicationUserId1");
+                        .HasForeignKey("ApplicationUserId");
 
                     b.Navigation("ApplicationUser");
                 });
@@ -367,11 +362,6 @@ namespace CatForum.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("CatForum.Models.ApplicationUser", b =>
-                {
-                    b.Navigation("Discussions");
                 });
 
             modelBuilder.Entity("CatForum.Models.Discussion", b =>

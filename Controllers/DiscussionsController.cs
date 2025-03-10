@@ -1,49 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization; 
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CatForum.Data;
 using CatForum.Models;
-using System.Reflection;
-using Microsoft.Identity.Client;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Components.Web.Virtualization;
 
 namespace CatForum.Controllers
 {
+    [Authorize] 
     public class DiscussionsController : Controller
     {
         private readonly CatForumContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public DiscussionsController(CatForumContext context)
+        public DiscussionsController(CatForumContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _userManager = userManager;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Discussions
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Discussion.ToListAsync());
-        }
-
-        // GET: Discussions/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var discussion = await _context.Discussion
-                .Include(d => d.Comments)
-                .FirstOrDefaultAsync(m => m.DiscussionId == id);
-            if (discussion == null)
-            {
-                return NotFound();
-            }
-
-            return View(discussion);
+            var discussions = await _context.Discussion
+                .Include(d => d.ApplicationUser)
+                .OrderByDescending(d => d.CreateDate)
+                .ToListAsync();
+            return View(discussions);
         }
 
         // GET: Discussions/Create
@@ -53,128 +42,167 @@ namespace CatForum.Controllers
         }
 
         // POST: Discussions/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Title,Content")] Discussion discussion, IFormFile? ImageFile)
+        public async Task<IActionResult> Create([Bind("Title,Content,ImageFile")] Discussion discussion)
         {
             if (ModelState.IsValid)
             {
-                if (ImageFile != null && ImageFile.Length > 0) 
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
                 {
-                    var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images");
-                    if (!Directory.Exists(uploadsFolder))
-                    {
-                        Directory.CreateDirectory(uploadsFolder);
-                    }
-
-                    var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageFile.FileName);
-                    var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await ImageFile.CopyToAsync(stream);
-                    }
-
-                    discussion.ImageFilename = "/images/" + uniqueFileName;
+                    discussion.ApplicationUserId = user.Id;
                 }
 
                 discussion.CreateDate = DateTime.UtcNow;
+
+                if (discussion.ImageFile != null && discussion.ImageFile.Length > 0)
+                {
+                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+                    Directory.CreateDirectory(uploadsFolder); // Ensure the folder exists
+
+                    string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(discussion.ImageFile.FileName);
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await discussion.ImageFile.CopyToAsync(fileStream);
+                    }
+
+                    discussion.ImageFilename =  uniqueFileName; // Ensure correct path
+                }
+                else
+                {
+                    discussion.ImageFilename = "placeholder.png"; // Default image
+                }
+
                 _context.Add(discussion);
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Details", new { id = discussion.DiscussionId });
+                return RedirectToAction("Index", "Home");
             }
+
             return View(discussion);
         }
 
-        // GET: Discussions/Edit/5
+        [Authorize]
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var discussion = await _context.Discussion.FindAsync(id);
-            if (discussion == null)
-            {
-                return NotFound();
-            }
+            if (discussion == null) return NotFound();
+
+            if (discussion.ApplicationUserId != _userManager.GetUserId(User)) { return Forbid(); }
             return View(discussion);
         }
 
-        // POST: Discussions/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("DiscussionId,Title,Content,ImageFilename,CreateDate")] Discussion discussion)
+        public async Task<IActionResult> Edit(int id, [Bind("DiscussionId,Title,Content,ImageFile,ImageFilename")] Discussion discussion)
         {
-            if (id != discussion.DiscussionId)
+            if (id != discussion.DiscussionId) return NotFound();
+
+            var existingDiscussion = await _context.Discussion.FindAsync(id);
+            if (existingDiscussion == null) return NotFound();
+
+            if (existingDiscussion.ApplicationUserId != _userManager.GetUserId(User))
+                return Forbid();
+
+            existingDiscussion.Title = discussion.Title;
+            existingDiscussion.Content = discussion.Content;
+
+            if (discussion.ImageFile != null && discussion.ImageFile.Length > 0)
             {
-                return NotFound();
+                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads");
+                Directory.CreateDirectory(uploadsFolder); // Ensure the folder exists
+
+                string uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(discussion.ImageFile.FileName);
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await discussion.ImageFile.CopyToAsync(fileStream);
+                }
+
+                // Delete old image if it exists and isn't the placeholder
+                if (!string.IsNullOrEmpty(existingDiscussion.ImageFilename) && !existingDiscussion.ImageFilename.EndsWith("placeholder.png"))
+                {
+                    string oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, existingDiscussion.ImageFilename.TrimStart('/'));
+                    if (System.IO.File.Exists(oldImagePath))
+                    {
+                        System.IO.File.Delete(oldImagePath);
+                    }
+                }
+
+                existingDiscussion.ImageFilename =  uniqueFileName; // Ensure correct path
+            }
+            else if (string.IsNullOrEmpty(existingDiscussion.ImageFilename) || existingDiscussion.ImageFilename == "placeholder.png")
+            {
+                existingDiscussion.ImageFilename = "placeholder.png";
             }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(discussion);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!DiscussionExists(discussion.DiscussionId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(discussion);
+            _context.Update(existingDiscussion);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: Discussions/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+
+        public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var discussion = await _context.Discussion
+                .Include(d => d.ApplicationUser) // Include the user who created the discussion
+                .Include(d => d.Comments)
+                .ThenInclude(c => c.ApplicationUser) // Include the users who made comments
                 .FirstOrDefaultAsync(m => m.DiscussionId == id);
-            if (discussion == null)
-            {
-                return NotFound();
-            }
+
+            if (discussion == null) return NotFound();
 
             return View(discussion);
         }
 
-        // POST: Discussions/Delete/5
+
+
+
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var discussion = await _context.Discussion.FindAsync(id);
+            if (discussion == null) return NotFound();
+
+            if (discussion.ApplicationUserId != _userManager.GetUserId(User)) return Forbid(); 
+
+            return View(discussion);
+        }
+
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var discussion = await _context.Discussion.FindAsync(id);
-            if (discussion != null)
-            {
-                _context.Discussion.Remove(discussion);
-            }
+            if (discussion == null) return NotFound();
 
+            if (discussion.ApplicationUserId != _userManager.GetUserId(User)) { return Forbid(); } 
+
+            _context.Discussion.Remove(discussion);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool DiscussionExists(int id)
+        [Authorize] 
+        public async Task<IActionResult> Manage()
         {
-            return _context.Discussion.Any(e => e.DiscussionId == id);
+            var userId = _userManager.GetUserId(User); 
+            var discussions = await _context.Discussion
+                .Where(d => d.ApplicationUserId == userId)
+                .OrderByDescending(d => d.CreateDate)
+                .ToListAsync();
+
+            return View(discussions);
         }
     }
 }

@@ -1,0 +1,22 @@
+﻿@model CatForum.Models.ApplicationUser
+
+<h2>@Model.Name's Profile</h2>
+
+<img src="@(!string.IsNullOrEmpty(Model.ImageFilename) ? "/uploads/" + Model.ImageFilename : "/images/placeholder.png")"
+     class="img-thumbnail"
+     width="150" height="150"
+     alt="Profile Picture" />
+
+<p><strong>Location:</strong> @Model.Location</p>
+
+<h3>Discussions by @Model.Name</h3>
+<ul>
+    @foreach (var discussion in Model.Discussions)
+    {
+        <li>
+            <a asp-controller="Discussions" asp-action="Details" asp-route-id="@discussion.DiscussionId">
+                @discussion.Title
+            </a>
+        </li>
+    }
+</ul>

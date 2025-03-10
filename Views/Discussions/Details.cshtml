@@ -4,77 +4,104 @@
     ViewData["Title"] = Model.Title;
 }
 
-<h1>@Model.Title</h1>
-
-<hr />
 <div class="container mt-4">
-    <div class="card">
-        <div class="card-body">
-            <h1 class="card-title">@Model.Title</h1>
+    <h2>@Model.Title</h2>
 
-            @if (!string.IsNullOrEmpty(Model.ImageFilename))
+    <div class="discussion-owner">
+        <img src="@(!string.IsNullOrEmpty(Model.ApplicationUser?.ImageFilename) && Model.ApplicationUser.ImageFilename != "placeholder.png"
+            ? "/uploads/" + Model.ApplicationUser.ImageFilename
+            : "/images/placeholder.png")"
+             class="rounded-circle"
+             width="50" height="50"
+             alt="Profile Picture" />
+
+        <strong>
+            @if (Model.ApplicationUser != null && !string.IsNullOrEmpty(Model.ApplicationUser.Name))
             {
-                <dt class="col-sm-2">Image</dt>
-                <dd class="col-sm-10">
-                    <img src="@Model.ImageFilename" alt="Discussion Image" class="img-fluid rounded" style="max-width: 400px;" />
-                </dd>
+                <a asp-controller="Profile" asp-action="Index" asp-route-userId="@Model.ApplicationUserId">
+                    @Model.ApplicationUser.Name
+                </a>
             }
-        </div>
-
-        <div>
-            <h4>Discussion</h4>
-            <hr />
-            <dl class="row">
-                <dt class="col-sm-2">Content</dt>
-                <dd class="col-sm-10">
-                    @Model.Content
-                </dd>
-                <dt class="col-sm-2">
-                    Created On
-                </dt>
-                <dd class="col-sm-10">
-                    @Model.CreateDate.ToString("g")
-                </dd>
-
-            </dl>
-        </div>
-
-        <hr />
-
-
-        <h4>Add a Comment</h4>
-        <form asp-controller="Comments" asp-action="Create" method="post" class="mb-3">
-            <input type="hidden" name="DiscussionId" value="@Model.DiscussionId" />
-
-            <div class="form-group">
-                <textarea name="Content" class="form-control" rows="4" placeholder="Write your reply..." required></textarea>
-            </div>
-
-            <button type="submit" class="btn btn-primary mt-2">Post Reply</button>
-            <a asp-controller="Discussions" asp-action="Index" class="btn btn-secondary">Back to Discussions</a>
-        </form>
-
-        
-
-        <h3>Comments</h3>
-
-        @if (Model.Comments != null && Model.Comments.Any())
-        {
-            <ul class="list-group">
-                @foreach (var comment in Model.Comments)
-                {
-                    <li class="list-group-item">
-                        <p>@comment.Content</p>
-                        <small class="text-muted">Posted on @comment.CreatedDate.ToString("g")</small>
-                    </li>
-                }
-            </ul>
-        }
-        else
-        {
-            <p>No comments yet.</p>
-        }
-        </div>
+            else
+            {
+                <span>Deleted User</span>
+            }
+        </strong>
     </div>
+
+    <p><small>Created on @Model.CreateDate.ToString("MMM dd, yyyy")</small></p>
+
+    @if (!string.IsNullOrEmpty(Model.ImageFilename) && Model.ImageFilename != "placeholder.png")
+    {
+        <div>
+            <img src="~/uploads/@Model.ImageFilename" class="img-fluid rounded" alt="Discussion Image">
+        </div>
+    }
+    else
+    {
+        <div>
+            <img src="~/images/placeholder.png" class="img-fluid rounded" alt="Default Discussion Image">
+        </div>
+    }
+
+    <p>@Model.Content</p>
+
+    <hr />
+
+    <h4>Comments</h4>
+    @if (Model.Comments.Any())
+    {
+        @foreach (var comment in Model.Comments)
+        {
+            <div class="comment">
+                <img src="@(!string.IsNullOrEmpty(comment.ApplicationUser?.ImageFilename) && comment.ApplicationUser.ImageFilename != "placeholder.png"
+                    ? "/uploads/" + comment.ApplicationUser.ImageFilename
+                    : "/images/placeholder.png")"
+                     class="rounded-circle"
+                     width="40" height="40"
+                     alt="Profile Picture" />
+
+                <strong>
+                    @if (comment.ApplicationUser != null && !string.IsNullOrEmpty(comment.ApplicationUser.Name))
+                    {
+                        <a asp-controller="Profile" asp-action="Index" asp-route-userId="@comment.ApplicationUserId">
+                            @comment.ApplicationUser.Name
+                        </a>
+                    }
+                    else
+                    {
+                        <span>Anonymous</span>
+                    }
+                </strong>
+
+                <p>@comment.Content</p>
+                <small class="text-muted">@comment.CreatedDate.ToString("g")</small>
+            </div>
+        }
+
+    }
+    else
+    {
+        <p>No comments yet.</p>
+    }
+
+    @if (User.Identity.IsAuthenticated)
+    {
+        <form id="commentForm" method="post" asp-action="Create" asp-controller="Comments">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="DiscussionId" value="@Model.DiscussionId" />
+            <div class="mb-3">
+                <label class="form-label">Add a Comment:</label>
+                <textarea class="form-control" name="Content" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Post Comment</button>
+        </form>
+    }
+    else
+    {
+        <p><a asp-area="Identity" asp-page="/Account/Login">Log in</a> to post a comment.</p>
+    }
+
+    <hr />
+    <a asp-action="Index" class="btn btn-secondary">Back to Discussions</a>
 </div>
-    

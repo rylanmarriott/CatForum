@@ -1,0 +1,41 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        var user = await UserManager.GetUserAsync(User);
+        var profilePic = string.IsNullOrEmpty(user?.ImageFilename)
+        ? "/images/default-profile.png"
+        : $"/uploads/{user.ImageFilename}";
+
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Discussions" asp-action="Manage">My Threads</a>
+        </li>
+
+        <li class="nav-item d-flex align-items-center">
+            <img src="@profilePic" alt="Profile" class="rounded-circle" width="40" height="40" style="margin-right: 8px;">
+            <span class="nav-link">Hello, @user?.Name!</span>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/ManageProfile">Manage Profile</a>
+        </li>
+
+        <li class="nav-item">
+            <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" method="post">
+                <button type="submit" class="btn btn-link nav-link text-dark">Logout</button>
+            </form>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        </li>
+    }
+</ul>

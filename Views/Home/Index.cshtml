@@ -14,16 +14,7 @@
         {
             <div class="col-md-4">
                 <div class="card mb-3">
-                    @if (!string.IsNullOrEmpty(discussion.ImageFilename))
-                    {
-                        <!-- Display Thumbnail -->
-                        <img src="@discussion.ImageFilename" class="card-img-top" alt="@discussion.Title" style="height: 200px; object-fit: cover;" />
-                    }
-                    else
-                    {
-                        <!-- Placeholder Thumbnail -->
-                        <img src="/images/placeholder.png" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;" />
-                    }
+                    <img src="@discussion.ImageFilename" class="card-img-top" alt="@discussion.Title" style="height: 200px; object-fit: cover;" />
 
                     <div class="card-body">
                         <h5 class="card-title">
@@ -32,16 +23,16 @@
                             </a>
                         </h5>
                         <p class="card-text">
-                            <strong>@discussion.Comments.Count</strong> comments
+                            <strong>@discussion.Comments?.Count</strong> comments
                         </p>
                         <p class="card-text">
                             <small class="text-muted">Created: @discussion.CreateDate.ToString("g")</small>
                         </p>
-                        
                     </div>
                 </div>
             </div>
         }
+
     </div>
 }
 else

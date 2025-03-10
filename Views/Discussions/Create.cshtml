@@ -4,30 +4,32 @@
     ViewData["Title"] = "Create a New Discussion";
 }
 
-<h2>Create a New Discussion</h2>
+<div class="container mt-4">
+    <h2>@ViewData["Title"]</h2>
+    <hr />
 
-<form asp-action="Create" enctype="multipart/form-data">
-    <div class="mb-3">
-        <label asp-for="Title" class="form-label">Discussion Title</label>
-        <input asp-for="Title" class="form-control" required />
-        <span asp-validation-for="Title" class="text-danger"></span>
-    </div>
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label">Title</label>
+            <input asp-for="Title" class="form-control" required />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label asp-for="Content" class="form-label">Discussion Content</label>
-        <textarea asp-for="Content" class="form-control" rows="4" required></textarea>
-        <span asp-validation-for="Content" class="text-danger"></span>
-    </div>
+        <div class="mb-3">
+            <label asp-for="Content" class="form-label">Content</label>
+            <textarea asp-for="Content" class="form-control" rows="4" required></textarea>
+            <span asp-validation-for="Content" class="text-danger"></span>
+        </div>
 
-    <div class="mb-3">
-        <label for="ImageFile" class="form-label">Upload Image (Optional)</label>
-        <input type="file" name="ImageFile" class="form-control" accept="image/*" />
-    </div>
+        <div class="mb-3">
+            <label asp-for="ImageFile" class="form-label">Upload Image (Optional)</label>
+            <input type="file" asp-for="ImageFile" class="form-control" />
+        </div>
 
-    <button type="submit" class="btn btn-primary">Create Discussion</button>
-</form>
-
-<a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-success">Save</button>
+        <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+    </form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

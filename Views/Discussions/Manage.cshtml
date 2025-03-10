@@ -1,0 +1,47 @@
+﻿@model IEnumerable<CatForum.Models.Discussion>
+
+@{
+    ViewData["Title"] = "Manage Threads";
+}
+
+<div class="container mt-4">
+    <h2>@ViewData["Title"]</h2>
+    <hr />
+
+    @if (!Model.Any())
+    {
+        <p>You have not created any discussions yet.</p>
+    }
+    else
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var discussion in Model)
+                {
+                    <tr>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@discussion.DiscussionId">
+                                @discussion.Title
+                            </a>
+                        </td>
+                        <td>@discussion.CreateDate.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@discussion.DiscussionId">Edit</a>
+                            <form asp-action="Delete" asp-route-id="@discussion.DiscussionId" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this thread?');">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
