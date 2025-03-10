@@ -1,0 +1,65 @@
+﻿@model CatForum.Models.ProfileViewModel
+
+@{
+    ViewData["Title"] = Model.Name + "'s Profile";
+}
+
+<div class="container mt-4">
+    <div class="profile-header text-center">
+        <img src="@(!string.IsNullOrEmpty(Model.ImageFilename) && Model.ImageFilename != "placeholder.png"
+            ? "/uploads/" + Model.ImageFilename
+            : "/images/placeholder.png")"
+             class="rounded-circle"
+             width="100" height="100"
+             alt="Profile Picture" />
+
+        <h2>@Model.Name</h2>
+        <p class="text-muted">Location: @(string.IsNullOrEmpty(Model.Location) ? "Not provided" : Model.Location)</p>
+    </div>
+
+    <hr />
+
+    <h3>@Model.Name's Discussions</h3>
+
+    @if (Model.Discussions.Any())
+    {
+        <div class="row">
+            @foreach (var discussion in Model.Discussions)
+            {
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        @if (!string.IsNullOrEmpty(discussion.ImageFilename) && discussion.ImageFilename != "placeholder.png")
+                        {
+                            <img src="/uploads/@discussion.ImageFilename" class="card-img-top" alt="@discussion.Title" style="height: 200px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <img src="/images/placeholder.png" class="card-img-top" alt="No Image" style="height: 200px; object-fit: cover;" />
+                        }
+
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a asp-controller="Discussions" asp-action="Details" asp-route-id="@discussion.DiscussionId">
+                                    @discussion.Title
+                                </a>
+                            </h5>
+                            <p class="card-text">
+                                <strong>@(discussion.Comments?.Count ?? 0)</strong> comments
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted">Created: @discussion.CreateDate.ToString("g")</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p>No discussions created yet.</p>
+    }
+
+    <hr />
+    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Back to Home</a>
+</div>
